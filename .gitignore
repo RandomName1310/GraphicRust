@@ -1,0 +1,10 @@
+# Ignore Rust build artifacts
+/target
+**/*.rs.bk
+Cargo.lock
+
+# IDE/editor config
+*.log
+.DS_Store
+*.sublime-project
+*.sublime-workspace

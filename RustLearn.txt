@@ -1,0 +1,70 @@
+[package and modules]
+- mod: make reference to a package or module
+- use: bring something into scope
+- pub: make functions, module and others public
+
+////////////////////////////////////////////////////////////////////////////
+[enums -> create subtypes related to a bigger type]
+- enum Coin{
+    Penny,
+    Quarter(String),
+}
+
+- let coin = Coin::Quarter(String::new());
+- if let Coin::Quarter(string /*variable*/) = coin{}
+- match{
+    Coin::Quarter(string) => println("{}", string),
+    Coin::Penny => println("Penny"),
+    _ => println("None")
+}
+
+- enum Option<T>{
+    Some(T),
+    None,
+}
+////////////////////////////////////////////////////////////////////////////
+[structs]
+- struct User {
+    active: bool,
+    username: String,
+    email: String,
+    sign_in_count: u64,
+}
+
+- let user1 = User {
+        email: String::from("someone@example.com"),
+        username: String::from("someusername123"),
+        active: true,
+        sign_in_count: 1,
+    };
+- let user2 = User {
+        email: String::from("another@example.com"),
+        ..user1 //completes user2 with all other elements from user1
+    };
+
+- struct Color(i32, i32, i32);
+struct Point(i32, i32, i32);
+
+fn main() {
+    let black = Color(0, 0, 0);
+    let origin = Point(0, 0, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////
+[strings]
+
+- !format -> concatenates strings
+- push_str() -> pushes to end
+
+////////////////////////////////////////////////////////////////////////////
+[hashmap]
+
+use std::collections::HashMap;
+
+fn main() {
+  let mut capitalCities = HashMap::new();
+  capitalCities.insert("France", "Paris");
+  capitalCities.insert("Japan", "Tokyo");
+
+  println!("Capital of Japan is {}", capitalCities["Japan"]);
+}
