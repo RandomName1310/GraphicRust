@@ -10,7 +10,7 @@ struct Player {
 }
 
 struct World {
-
+    platforms: Vec<Rect>,
 }
 
 impl Player {
@@ -25,7 +25,7 @@ impl Player {
         }
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, platforms: &[Rect]) {
         let vel_x = &mut self.vel_x;
         let vel_y = &mut self.vel_y;
 
@@ -39,10 +39,11 @@ impl Player {
         draw_line(line_begin.x, line_begin.y, line_end.x, line_end.y, 1.0, RED);
 
         // check if falling
-        if self.rect.y < 550.0 - self.rect.h{
-            self.is_falling = true;
-        } else{
-            self.is_falling = false;
+        self.is_falling = true;
+        for platform in platforms{
+            if self.rect.overlaps(platform){
+                self.is_falling = false;
+            }
         }
 
         // apply accelerations
@@ -82,16 +83,21 @@ impl Player {
 impl World {
     fn new() -> Self {
         Self {
-        
+            platforms: vec![
+                Rect::new(200.0, 450.0, 100.0, 20.0),
+                Rect::new(400.0, 350.0, 100.0, 20.0),
+                Rect::new(-200.0, 550.0, 1000.0, 100.0),
+            ],
         }
     }
 
     fn update(&mut self) {
-       
     }
 
     fn draw(&self) {
-        draw_rectangle(-200.0, 550.0, 1000.0, 100.0, GREEN);
+        for platform in &self.platforms {
+            draw_rectangle(platform.x, platform.y, platform.w, platform.h, GREEN);
+        }
     }
 }
 
@@ -101,13 +107,13 @@ async fn main() {
     let world = World::new();
 
     loop {
-        clear_background(BLACK);
+        clear_background(DARKGRAY);
 
         // handle world
         world.draw();
 
         // handle player
-        player.update();
+        player.update(&world.platforms);
         player.draw();
 
         next_frame().await;
