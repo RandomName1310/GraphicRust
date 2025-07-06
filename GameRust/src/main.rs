@@ -64,6 +64,17 @@ impl Player {
                 _ => {} 
             }
         }
+
+        // dash
+        let mouse_pos: Vec2 = mouse_position().into();
+        let dash_vec: Vec2 = Vec2::new(self.rect.x - mouse_pos.x, self.rect.y - mouse_pos.y);
+
+        draw_text(&format!("dash X,Y: {}, {}", dash_vec.x, dash_vec.y), 20.0, 80.0, 20.0, WHITE);
+
+        if is_mouse_button_pressed(MouseButton::Left){
+            *vel_x = -dash_vec.x * 0.05;
+            *vel_y = dash_vec.y * 0.05;
+        }
         
         // apply changes to player rect
         self.rect.x += *vel_x;
