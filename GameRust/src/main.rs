@@ -43,7 +43,7 @@ async fn main() {
     let mut player = Player::new();
 
     loop {
-        clear_background(WHITE);
+        clear_background(BLACK);
 
         player.update();
         player.draw();
