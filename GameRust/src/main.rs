@@ -2,11 +2,17 @@ use macroquad::prelude::*;
 
 struct Player {
     rect: Rect,
+    upper_hitbox: Rect,
+    lower_hitbox: Rect,
+    left_hitbox: Rect,
+    right_hitbox: Rect,
     vel_x: f32,
     vel_y: f32,
     speed: f32,
     jump_height: f32,
     is_falling: bool,
+    can_walk_left: bool,
+    can_walk_right: bool,
 }
 
 struct World {
@@ -17,11 +23,17 @@ impl Player {
     fn new() -> Self {
         Self {
             rect: Rect::new(100.0, 100.0, 32.0, 32.0),
+            upper_hitbox: Rect::new(100.0, 100.0, 32.0, 32.0),
+            lower_hitbox: Rect::new(100.0, 100.0, 32.0, 32.0),
+            left_hitbox: Rect::new(100.0, 100.0, 32.0, 32.0),
+            right_hitbox: Rect::new(100.0, 100.0, 32.0, 32.0),
             vel_x: 0.0,
             vel_y: 0.0,
             speed: 4.0,
             jump_height: 6.0,
             is_falling: false,
+            can_walk_left: false,
+            can_walk_right: false,
         }
     }
 
@@ -36,13 +48,28 @@ impl Player {
         let line_begin: Vec2 =  vec2(self.rect.x + self.rect.w / 2.0, self.rect.y + self.rect.h / 2.0);
         let line_end: Vec2 = mouse_position().into();
 
-        draw_line(line_begin.x, line_begin.y, line_end.x, line_end.y, 1.0, RED);
-
         // check if falling
         self.is_falling = true;
+        self.can_walk_left = true;
+        self.can_walk_right = true;
         for platform in platforms{
-            if self.rect.overlaps(platform){
+            // check upper hitbox
+            if self.upper_hitbox.overlaps(platform){
+                *vel_y = -*vel_y * 0.8;
+            }
+            // check lower hitbox
+            else if self.lower_hitbox.overlaps(platform){
                 self.is_falling = false;
+            }
+            // check left hitbox
+            else if self.left_hitbox.overlaps(platform){
+                self.can_walk_left = false;
+                *vel_x = -*vel_x;
+            }
+            // check right hitbox
+            else if self.right_hitbox.overlaps(platform){
+                self.can_walk_right = false;
+                *vel_x = -*vel_x;
             }
         }
 
@@ -58,8 +85,8 @@ impl Player {
 
         for key in keys_down {
             match key {
-                KeyCode::D => *vel_x = self.speed,
-                KeyCode::A => *vel_x = -self.speed,
+                KeyCode::D => if self.can_walk_right{*vel_x = self.speed},
+                KeyCode::A => if self.can_walk_left{*vel_x = -self.speed},
                 KeyCode::W => if !self.is_falling{*vel_y = self.jump_height},
                 _ => {} 
             }
@@ -79,6 +106,46 @@ impl Player {
         // apply changes to player rect
         self.rect.x += *vel_x;
         self.rect.y -= *vel_y;
+
+        // recalculate hitboxes 
+        self.upper_hitbox = Rect::new(
+            self.rect.x + 2.0,
+            self.rect.y - 3.0,
+            self.rect.w - 5.0,
+            self.rect.h / 5.0,
+        );
+        self.lower_hitbox = Rect::new(
+            self.rect.x + 2.0,
+            self.rect.y + self.rect.h + 1.0,
+            self.rect.w - 5.0,
+            self.rect.h / 5.0,
+        );
+        self.left_hitbox = Rect::new(
+            self.rect.x - self.rect.w / 5.0 + 1.0, // posicionado à esquerda do corpo
+            self.rect.y + 2.0,          // um pouco abaixo para evitar conflito com upper
+            self.rect.w / 5.0,
+            self.rect.h - 4.0,
+        );
+
+        self.right_hitbox = Rect::new(
+            self.rect.x + self.rect.w - 1.0, // posicionado à direita do corpo
+            self.rect.y + 2.0,
+            self.rect.w / 5.0,
+            self.rect.h - 4.0,
+        );
+
+        // dash logic
+        let mouse_pos: Vec2 = mouse_position().into();
+        let dash_vec: Vec2 = Vec2::new(self.rect.x - mouse_pos.x, self.rect.y - mouse_pos.y);
+
+        draw_text(&format!("dash X,Y: {}, {}", dash_vec.x, dash_vec.y), 20.0, 80.0, 20.0, WHITE);
+        if is_mouse_button_pressed(MouseButton::Left){
+            *vel_x = -dash_vec.x * 0.05;
+            *vel_y = dash_vec.y * 0.05;
+        }
+        draw_line(line_begin.x, line_begin.y, line_end.x, line_end.y, 1.0, RED);
+
+
         // debug
         draw_text(&format!("X: {}", vel_x), 20.0, 20.0, 20.0, WHITE);
         draw_text(&format!("Y: {}", vel_y), 20.0, 40.0, 20.0, WHITE);
@@ -88,6 +155,11 @@ impl Player {
     fn draw(&self) {
         // draw player
         draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, BLUE);
+        draw_rectangle(self.upper_hitbox.x, self.upper_hitbox.y, self.upper_hitbox.w, self.upper_hitbox.h, RED);
+        draw_rectangle(self.lower_hitbox.x, self.lower_hitbox.y, self.lower_hitbox.w, self.lower_hitbox.h, PURPLE);
+        draw_rectangle(self.left_hitbox.x, self.left_hitbox.y, self.left_hitbox.w, self.left_hitbox.h, PINK);
+        draw_rectangle(self.right_hitbox.x, self.right_hitbox.y, self.right_hitbox.w, self.right_hitbox.h, PINK);
+
     }
 }
 
@@ -98,6 +170,7 @@ impl World {
                 Rect::new(200.0, 450.0, 100.0, 20.0),
                 Rect::new(400.0, 350.0, 100.0, 20.0),
                 Rect::new(-200.0, 550.0, 1000.0, 100.0),
+                Rect::new(0.0, 0.0, 100.0, 1000.0),
             ],
         }
     }
