@@ -44,10 +44,6 @@ impl Player {
         const GRAVITY: f32 = -0.15;
         const AIRFRICTION: f32 = -0.2;
 
-        // draw line
-        let line_begin: Vec2 =  vec2(self.rect.x + self.rect.w / 2.0, self.rect.y + self.rect.h / 2.0);
-        let line_end: Vec2 = mouse_position().into();
-
         // check if falling
         self.is_falling = true;
         self.can_walk_left = true;
@@ -91,17 +87,6 @@ impl Player {
                 _ => {} 
             }
         }
-
-        // dash
-        let mouse_pos: Vec2 = mouse_position().into();
-        let dash_vec: Vec2 = Vec2::new(self.rect.x - mouse_pos.x, self.rect.y - mouse_pos.y);
-
-        draw_text(&format!("dash X,Y: {}, {}", dash_vec.x, dash_vec.y), 20.0, 80.0, 20.0, WHITE);
-
-        if is_mouse_button_pressed(MouseButton::Left){
-            *vel_x = -dash_vec.x * 0.05;
-            *vel_y = dash_vec.y * 0.05;
-        }
         
         // apply changes to player rect
         self.rect.x += *vel_x;
@@ -121,30 +106,32 @@ impl Player {
             self.rect.h / 5.0,
         );
         self.left_hitbox = Rect::new(
-            self.rect.x - self.rect.w / 5.0 + 1.0, // posicionado à esquerda do corpo
-            self.rect.y + 2.0,          // um pouco abaixo para evitar conflito com upper
+            self.rect.x - self.rect.w / 5.0 + 1.0, 
+            self.rect.y + 2.0,         
             self.rect.w / 5.0,
             self.rect.h - 4.0,
         );
 
         self.right_hitbox = Rect::new(
-            self.rect.x + self.rect.w - 1.0, // posicionado à direita do corpo
+            self.rect.x + self.rect.w - 1.0,
             self.rect.y + 2.0,
             self.rect.w / 5.0,
             self.rect.h - 4.0,
         );
 
         // dash logic
+        let dash_x: f32 = 10.0;
+        let dash_y: f32 = 10.0;
+        let smooth: f32 = 10.0;
+
         let mouse_pos: Vec2 = mouse_position().into();
-        let dash_vec: Vec2 = Vec2::new(self.rect.x - mouse_pos.x, self.rect.y - mouse_pos.y);
+        let dash_vec: Vec2 = Vec2::new(((self.rect.x - mouse_pos.x)/smooth).clamp(-dash_x, dash_x), ((self.rect.y - mouse_pos.y)/smooth).clamp(-dash_y, dash_y));
+        draw_text(&format!("Dash: {}, {}", dash_vec.x, dash_vec.y), 20.0, 80.0, 20.0, WHITE);
 
-        draw_text(&format!("dash X,Y: {}, {}", dash_vec.x, dash_vec.y), 20.0, 80.0, 20.0, WHITE);
         if is_mouse_button_pressed(MouseButton::Left){
-            *vel_x = -dash_vec.x * 0.05;
-            *vel_y = dash_vec.y * 0.05;
+            *vel_x = -dash_vec.x;
+            *vel_y = dash_vec.y;
         }
-        draw_line(line_begin.x, line_begin.y, line_end.x, line_end.y, 1.0, RED);
-
 
         // debug
         draw_text(&format!("X: {}", vel_x), 20.0, 20.0, 20.0, WHITE);
@@ -155,10 +142,10 @@ impl Player {
     fn draw(&self) {
         // draw player
         draw_rectangle(self.rect.x, self.rect.y, self.rect.w, self.rect.h, BLUE);
-        draw_rectangle(self.upper_hitbox.x, self.upper_hitbox.y, self.upper_hitbox.w, self.upper_hitbox.h, RED);
-        draw_rectangle(self.lower_hitbox.x, self.lower_hitbox.y, self.lower_hitbox.w, self.lower_hitbox.h, PURPLE);
-        draw_rectangle(self.left_hitbox.x, self.left_hitbox.y, self.left_hitbox.w, self.left_hitbox.h, PINK);
-        draw_rectangle(self.right_hitbox.x, self.right_hitbox.y, self.right_hitbox.w, self.right_hitbox.h, PINK);
+        //draw_rectangle(self.upper_hitbox.x, self.upper_hitbox.y, self.upper_hitbox.w, self.upper_hitbox.h, RED);
+        //draw_rectangle(self.lower_hitbox.x, self.lower_hitbox.y, self.lower_hitbox.w, self.lower_hitbox.h, PURPLE);
+        //draw_rectangle(self.left_hitbox.x, self.left_hitbox.y, self.left_hitbox.w, self.left_hitbox.h, PINK);
+        //draw_rectangle(self.right_hitbox.x, self.right_hitbox.y, self.right_hitbox.w, self.right_hitbox.h, PINK);
 
     }
 }
